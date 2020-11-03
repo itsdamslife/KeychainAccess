@@ -338,6 +338,13 @@ public struct Attributes {
     public var synchronizable: Bool? {
         return attributes[AttributeSynchronizable] as? Bool
     }
+    public var useDataProtection: Bool? {
+        if #available(OSX 10.15, *) {
+            return attributes[AttributeUseDataProtection] as? Bool
+        } else {
+            return false
+        }
+    }
     public var creationDate: Date? {
         return attributes[AttributeCreationDate] as? Date
     }
@@ -891,6 +898,9 @@ public final class Keychain {
         var query = [String: Any]()
         query[Class] = itemClass.rawValue
         query[AttributeSynchronizable] = SynchronizableAny
+        if #available(OSX 10.15, *) {
+            query[AttributeUseDataProtection] = kCFBooleanTrue
+        }
         query[MatchLimit] = MatchLimitAll
         query[ReturnAttributes] = kCFBooleanTrue
 
@@ -1178,6 +1188,10 @@ public final class Keychain {
                 item["synchronizable"] = synchronizable ? "true" : "false"
             }
 
+            if #available(OSX 10.15, *) {
+                item["useDataProtection"] = attributes[AttributeUseDataProtection] as? Bool ?? kCFBooleanTrue
+            }
+            
             return item
         }
         return items
@@ -1237,6 +1251,10 @@ private let AttributeAccessControl = String(kSecAttrAccessControl)
 
 private let AttributeAccessGroup = String(kSecAttrAccessGroup)
 private let AttributeSynchronizable = String(kSecAttrSynchronizable)
+
+@available(OSX 10.15, *)
+private let AttributeUseDataProtection = String(kSecUseDataProtectionKeychain)
+
 private let AttributeCreationDate = String(kSecAttrCreationDate)
 private let AttributeModificationDate = String(kSecAttrModificationDate)
 private let AttributeDescription = String(kSecAttrDescription)
@@ -1336,6 +1354,9 @@ extension Options {
             query[AttributeSynchronizable] = SynchronizableAny
         } else {
             query[AttributeSynchronizable] = synchronizable ? kCFBooleanTrue : kCFBooleanFalse
+        
+        if #available(OSX 10.15, *) {
+            query[AttributeUseDataProtection] = kCFBooleanTrue
         }
 
         switch itemClass {
@@ -1403,6 +1424,9 @@ extension Options {
         }
 
         attributes[AttributeSynchronizable] = synchronizable ? kCFBooleanTrue : kCFBooleanFalse
+        if #available(OSX 10.15, *) {
+            attributes[AttributeUseDataProtection] = kCFBooleanTrue
+        }
 
         return (attributes, nil)
     }
